@@ -19,7 +19,6 @@ const SPLIT_LIFETIME = 1320;
 const DASH_CYCLE = 300;
 const DASH_TELEGRAPH = 60;
 const DASH_DURATION = 66;
-const POSSIBLE_BALLS = [2, 3, 4, 5, 6]
 const BALL_STATS = {
     1: {
         speed: 1.7,
@@ -68,10 +67,28 @@ const BALL_STATS = {
 const level = 4;
 
 let last_spawn = 0;
-document.addEventListener("keydown", (e) => { keys[e.key] = true; })
-document.addEventListener("keyup", (e) => { keys[e.key] = false; })
 let balls = [];
 let frame = 0;
+let gameOver = false;
+let survivalFrames = 0;
+let bestSurvival = 0;
+
+document.addEventListener("keydown", (e) => {
+    keys[e.key] = true;
+    if (gameOver && e.key === " ") resetGame();
+});
+document.addEventListener("keyup", (e) => { keys[e.key] = false; })
+canvas.addEventListener("click", () => { if (gameOver) resetGame(); })
+
+function resetGame() {
+    player.x = canvas.width / 2;
+    player.y = canvas.height / 2;
+    balls = [];
+    frame = 0;
+    last_spawn = 0;
+    survivalFrames = 0;
+    gameOver = false;
+}
 
 function pickType(level) {
     const roll = Math.random();
@@ -113,6 +130,7 @@ function pickType(level) {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     ctx.fillStyle = "rgb(0, 0, 255)";
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
@@ -133,13 +151,30 @@ function draw() {
         }
         if (ball.telegraph) {
             ctx.strokeStyle = "rgb(255, 255, 255)";
-            ctx.lineWidth = 10;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(ball.x, ball.y);
-            ctx.lineTo(ball.x + ball.telegraph_dir.x * 10, ball.y + ball.telegraph_dir.y * 10);
+            ctx.lineTo(ball.x + ball.telegraph_dir.x, ball.y + ball.telegraph_dir.y);
             ctx.stroke();
         }
     })
+
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.font = "16px sans-serif";
+    ctx.fillText("Survived: " + (survivalFrames / 60).toFixed(1) + "s", 12, 24);
+    ctx.fillText("Best: " + (bestSurvival / 60).toFixed(1) + "s", 12, 44);
+
+    if (gameOver) {
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.font = "36px sans-serif";
+        ctx.fillText("Game over", canvas.width / 2, canvas.height / 2 - 20);
+        ctx.font = "18px sans-serif";
+        ctx.fillText("Click or press space to restart", canvas.width / 2, canvas.height / 2 + 16);
+        ctx.textAlign = "left";
+    }
 }
 
 function turnTowardPlayer(ball, targetSpeed) {
@@ -205,6 +240,8 @@ function move() {
         const stats = BALL_STATS[ball.type];
         const baseSpeed = stats.speed;
 
+        ball.alive_frames++;
+
         if (stats.homing) {
             if (stats.dash) {
                 ball.dashTimer = (ball.dashTimer || 0) + 1;
@@ -219,7 +256,7 @@ function move() {
                         ball.telegraph = true;
                         const ang = Math.atan2(player.y - ball.y, player.x - ball.x);
                         ball.ang = ang;
-                        ball.telegraph_dir = { x: Math.cos(ang) * 40, y: Math.sin(ang) * 40 };
+                        ball.telegraph_dir = { x: Math.cos(ang) * 30, y: Math.sin(ang) * 30 };
                     }
                     if (ball.dashTimer > DASH_CYCLE) {
                         ball.dashing = true;
@@ -239,60 +276,55 @@ function move() {
 
         ball.x += ball.dx;
         ball.y += ball.dy;
-        if (ball.x < ball.radius || ball.x > canvas.width - ball.radius) {
+
+        if (ball.x < ball.radius) {
+            ball.x = ball.radius;
+            ball.dx *= -1;
+            ball.bounces++;
+        } else if (ball.x > canvas.width - ball.radius) {
+            ball.x = canvas.width - ball.radius;
             ball.dx *= -1;
             ball.bounces++;
         }
-        if (ball.y < ball.radius || ball.y > canvas.height - ball.radius) {
+        if (ball.y < ball.radius) {
+            ball.y = ball.radius;
+            ball.dy *= -1;
+            ball.bounces++;
+        } else if (ball.y > canvas.height - ball.radius) {
+            ball.y = canvas.height - ball.radius;
             ball.dy *= -1;
             ball.bounces++;
         }
+
         if (stats.split && ball.type == 3 && ball.bounces >= RED_SPLIT_BOUNCES) {
             if (stats.split_delete_self) ball.dead = true;
-            for (let i = 0; i < stats.split_amount; i++) {
-                const angle = (i / 6) * Math.PI * 2;
-                const splitSpeed = BALL_STATS[stats.split_to].speed;
-                const sdx = Math.cos(angle) * splitSpeed;
-                const sdy = Math.sin(angle) * splitSpeed;
-                if (ball.x < ball.radius) {
-                    spawn(ball.x + ball.radius, ball.y, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-                if (ball.x > canvas.width - ball.radius) {
-                    spawn(ball.x - ball.radius, ball.y, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-                if (ball.y < ball.radius) {
-                    spawn(ball.x, ball.y + ball.radius, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-                if (ball.y > canvas.height - ball.radius) {
-                    spawn(ball.x, ball.y - ball.radius, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-            }
+            spawnSplitRing(ball, stats);
             ball.bounces = 0;
         }
+        if (stats.split && ball.type == 5 && ball.alive_frames > SPINY_SPLIT_TIME) {
+            if (stats.split_delete_self) ball.dead = true;
+            spawnSplitRing(ball, stats);
+            ball.bounces = 0;
+            ball.alive_frames = -Infinity;
+        }
+
         ball.life--;
         if (ball.life <= 0) ball.dead = true;
+
+        const dist = Math.hypot(ball.x - player.x, ball.y - player.y);
+        if (dist < ball.radius + player.radius) {
+            gameOver = true;
+        }
     })
-    if (stats.split && ball.type == 5 && ball.alive_frames > SPINY_SPLIT_TIME) {
-        if (stats.split_delete_self) ball.dead = true;
-            for (let i = 0; i < stats.split_amount; i++) {
-                const angle = (i / 6) * Math.PI * 2;
-                const splitSpeed = BALL_STATS[stats.split_to].speed;
-                const sdx = Math.cos(angle) * splitSpeed;
-                const sdy = Math.sin(angle) * splitSpeed;
-                if (ball.x < ball.radius) {
-                    spawn(ball.x + ball.radius, ball.y, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-                if (ball.x > canvas.width - ball.radius) {
-                    spawn(ball.x - ball.radius, ball.y, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-                if (ball.y < ball.radius) {
-                    spawn(ball.x, ball.y + ball.radius, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-                if (ball.y > canvas.height - ball.radius) {
-                    spawn(ball.x, ball.y - ball.radius, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
-                }
-            }
-            ball.bounces = 0;
+}
+
+function spawnSplitRing(ball, stats) {
+    for (let i = 0; i < stats.split_amount; i++) {
+        const angle = (i / stats.split_amount) * Math.PI * 2;
+        const splitSpeed = BALL_STATS[stats.split_to].speed;
+        const sdx = Math.cos(angle) * splitSpeed;
+        const sdy = Math.sin(angle) * splitSpeed;
+        spawn(ball.x, ball.y, stats.split_to, sdx, sdy, SPLIT_LIFETIME);
     }
 }
 
@@ -302,13 +334,13 @@ function remove_dead() {
 
 function spawn(x, y, type, dx = null, dy = null, lifeOverride = null) {
     const stats = BALL_STATS[type];
-    const speed = stats.speed;
+    const spd = stats.speed;
     const life = lifeOverride !== null ? lifeOverride : stats.life;
     const color = stats.color;
 
     if (dx === null || dy === null) {
-        dx = choice([-speed, speed]);
-        dy = choice([-speed, speed]);
+        dx = choice([-spd, spd]);
+        dy = choice([-spd, spd]);
     }
 
     balls.push({
@@ -345,11 +377,15 @@ function spawner() {
 }
 
 function update() {
-    move();
+    if (!gameOver) {
+        move();
+        spawner();
+        frame++;
+        survivalFrames++;
+        if (survivalFrames > bestSurvival) bestSurvival = survivalFrames;
+    }
     draw();
     remove_dead();
-    spawner();
-    frame++;
     requestAnimationFrame(update);
 }
 
