@@ -320,7 +320,7 @@ function move() {
 
 function spawnSplitRing(ball, stats) {
     for (let i = 0; i < stats.split_amount; i++) {
-        const angle = (i / stats.split_amount) * Math.PI * 2;
+        const angle = (i / 6) * Math.PI * 2;
         const splitSpeed = BALL_STATS[stats.split_to].speed;
         const sdx = Math.cos(angle) * splitSpeed;
         const sdy = Math.sin(angle) * splitSpeed;
