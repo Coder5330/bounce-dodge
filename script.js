@@ -12,7 +12,7 @@ canvas.height = CANVAS_SIZE;
 const PLAYER_SPEED = 4.2;
 const PLAYER_RADIUS = 10;
 const MAX_LIVES = 3;
-const IMMUNITY_FRAMES = 60;
+const IMMUNITY_FRAMES = 180;
 
 const BALL_RADIUS = 7;
 const HOMING_TURN_RATE = 0.11;
