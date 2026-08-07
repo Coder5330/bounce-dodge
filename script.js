@@ -6,7 +6,8 @@ const ctx = canvas.getContext("2d");
 const player = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    radius: 10
+    radius: 10,
+    lives: 3,
 }
 const keys = {}
 
@@ -163,6 +164,8 @@ function draw() {
     ctx.font = "16px sans-serif";
     ctx.fillText("Survived: " + (survivalFrames / 60).toFixed(1) + "s", 12, 24);
     ctx.fillText("Best: " + (bestSurvival / 60).toFixed(1) + "s", 12, 44);
+    lives_text = "❤️".repeat(player.lives) + "🩶".repeat(3 - player.lives);
+    ctx.fillText(lives_text, 12, 64);
 
     if (gameOver) {
         ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -313,7 +316,10 @@ function move() {
 
         const dist = Math.hypot(ball.x - player.x, ball.y - player.y);
         if (dist < ball.radius + player.radius) {
-            gameOver = true;
+            player.lives--;
+            if (player.lives <= 0) {
+                gameOver = true;
+            }
         }
     })
 }
