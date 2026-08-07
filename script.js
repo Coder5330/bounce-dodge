@@ -1,4 +1,5 @@
 const canvas = document.getElementById("canvas");
+const startButton = document.getElementById("startButton");
 const s = Math.min(window.innerWidth - 40, window.innerHeight - 40, 900);
 canvas.width = s
 canvas.height = s
@@ -66,21 +67,27 @@ const BALL_STATS = {
         life: 1200,
     },
 }
-const level = 4;
-
+let level = 2;
 let last_spawn = 0;
 let balls = [];
 let frame = 0;
-let gameOver = false;
 let survivalFrames = 0;
 let bestSurvival = 0;
+let state = 'menu';
 
 document.addEventListener("keydown", (e) => {
     keys[e.key] = true;
-    if (gameOver && e.key === " ") resetGame();
+    if (state === 'game-over' && e.key === " ") resetGame();
 });
 document.addEventListener("keyup", (e) => { keys[e.key] = false; })
-canvas.addEventListener("click", () => { if (gameOver) resetGame(); })
+canvas.addEventListener("click", () => { if (state === 'game-over') resetGame(); })
+startButton.addEventListener("click", () => {
+    const selectedDifficulty = document.querySelector('input[name="difficulty"]:checked');
+    if (selectedDifficulty) {
+        level = parseInt(selectedDifficulty.value);
+        state = 'game';
+    }
+});
 
 function resetGame() {
     player.x = canvas.width / 2;
@@ -89,7 +96,7 @@ function resetGame() {
     frame = 0;
     last_spawn = 0;
     survivalFrames = 0;
-    gameOver = false;
+    state = 'menu';
 }
 
 function pickType(level) {
@@ -132,55 +139,56 @@ function pickType(level) {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (state === 'menu') {
+        canvas.style.display = "none";
+    } else if (state === 'game') {
 
-
-    if (player.immunityFrames > 0) {
-        ctx.fillStyle = "rgba(173, 217, 237, 0.5)";
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgb(0, 8, 255)";
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-    
-    ctx.fillStyle = "rgb(0, 0, 255)";
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    balls.forEach((ball) => {
-        if (ball.type === 5) {
-            drawSpiny(ball);
-        } else {
-            ctx.fillStyle = ball.color;
+        if (player.immunityFrames > 0) {
+            ctx.fillStyle = "rgba(173, 217, 237, 0.5)";
             ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = "rgb(255, 255, 255)";
+            ctx.strokeStyle = "rgb(0, 8, 255)";
             ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
             ctx.stroke();
         }
-        if (ball.telegraph) {
-            ctx.strokeStyle = "rgb(255, 255, 255)";
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(ball.x, ball.y);
-            ctx.lineTo(ball.x + ball.telegraph_dir.x, ball.y + ball.telegraph_dir.y);
-            ctx.stroke();
-        }
-    })
 
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.font = "16px sans-serif";
-    ctx.fillText("Survived: " + (survivalFrames / 60).toFixed(1) + "s", 12, 24);
-    ctx.fillText("Best: " + (bestSurvival / 60).toFixed(1) + "s", 12, 44);
-    lives_text = "❤️".repeat(player.lives) + "🩶".repeat(3 - player.lives);
-    ctx.fillText(lives_text, 12, 64);
+        ctx.fillStyle = "rgb(0, 0, 255)";
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+        ctx.fill();
 
-    if (gameOver) {
+        balls.forEach((ball) => {
+            if (ball.type === 5) {
+                drawSpiny(ball);
+            } else {
+                ctx.fillStyle = ball.color;
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "rgb(255, 255, 255)";
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            if (ball.telegraph) {
+                ctx.strokeStyle = "rgb(255, 255, 255)";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(ball.x, ball.y);
+                ctx.lineTo(ball.x + ball.telegraph_dir.x, ball.y + ball.telegraph_dir.y);
+                ctx.stroke();
+            }
+        })
+
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.font = "16px sans-serif";
+        ctx.fillText("Survived: " + (survivalFrames / 60).toFixed(1) + "s", 12, 24);
+        ctx.fillText("Best: " + (bestSurvival / 60).toFixed(1) + "s", 12, 44);
+        lives_text = "❤️".repeat(player.lives) + "🩶".repeat(3 - player.lives);
+        ctx.fillText(lives_text, 12, 64);
+    } else if (state === 'game-over') {
         ctx.fillStyle = "rgba(0,0,0,0.6)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "white";
@@ -333,7 +341,7 @@ function move() {
             if (player.immunityFrames > 0) return;
             player.lives--;
             if (player.lives <= 0) {
-                gameOver = true;
+                state = 'game-over';
             }
             ball.dead = true;
             player.immunityFrames = 60;
@@ -400,7 +408,7 @@ function spawner() {
 }
 
 function update() {
-    if (!gameOver) {
+    if (state === 'game') {
         move();
         spawner();
         frame++;

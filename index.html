@@ -5,7 +5,46 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <canvas id="canvas"></canvas>
+        <div>
+            <canvas id="canvas"></canvas>
+            <div id="menu">
+                <h1>Bounce Dodge</h1>
+                <p>Use the arrow keys to move and dodge the balls!</p>
+                <div id="difficultyPicker">
+                    <label>
+                        <input type="radio" name="difficulty" value="0">
+                        Baby — Green only
+                    </label>
+                    <label>
+                        <input type="radio" name="difficulty" value="1">
+                        Easy — Green &amp; Yellow
+                    </label>
+                    <label>
+                        <input type="radio" name="difficulty" value="2" checked="">
+                        Medium — full mix
+                    </label>
+                    <label>
+                        <input type="radio" name="difficulty" value="3">
+                        Hard — no Green, more Red
+                    </label>
+                    <label>
+                        <input type="radio" name="difficulty" value="4">
+                        Impossible — mostly Red
+                    </label>
+                    <label>
+                        <input type="radio" name="difficulty" value="5">
+                        Troll — White balls only, forever
+                    </label>
+                    <label>
+                        <input type="radio" name="difficulty" value="6">
+                        Tensai — Impossible + closing black-ball rings
+                    </label>
+                </div>
+                <div id="overlay">
+                    <button id="startButton">Next</button>
+                </div>
+            </div>
+        </div>
         <script src="script.js"></script>
     </body>
 </html>
