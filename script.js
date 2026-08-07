@@ -208,7 +208,7 @@ function spawnTensaiRing(i) {
     const angle = (i / 30) * Math.PI * 2;
     const x = centerX + Math.cos(angle) * ringRadius;
     const y = centerY + Math.sin(angle) * ringRadius;
-    const type = 5;
+    const type = 4;
     const stats = BALL_STATS[type];
     const speed = stats.speed;
     const dx = Math.cos(angle) * speed;
