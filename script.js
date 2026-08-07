@@ -25,6 +25,11 @@ const DASH_CYCLE = 300;
 const DASH_TELEGRAPH = 60;
 const DASH_DURATION = 66;
 
+const TENSAI_RING_INTERVAL = 1200;
+const TENSAI_WAVE_SPAWN_DURATION = 5000;
+const TENSAI_RING_COUNT = 60;
+const TENSAI_FRAMES_PER_BALL = Math.floor((TENSAI_WAVE_SPAWN_DURATION / 1000) * 60 / TENSAI_RING_COUNT);
+
 const BALL_STATS = {
     1: {
         speed: 1.7, color: 'rgb(0, 255, 0)',
@@ -82,6 +87,10 @@ let survivalFrames = 0;
 let bestSurvival = 0;
 let state = 'menu';
 
+let tensaiWaveActive = false;
+let tensaiWaveIndex = 0;
+let tensaiWaveNextFrame = 0;
+
 document.addEventListener("keydown", (e) => {
     keys[e.key] = true;
     if (state === 'game-over' && e.key === " ") resetGame();
@@ -115,6 +124,9 @@ function resetGame() {
     last_spawn = 0;
     survivalFrames = 0;
     state = 'menu';
+    tensaiWaveActive = false;
+    tensaiWaveIndex = 0;
+    tensaiWaveNextFrame = 0;
     canvas.style.display = "none";
     menu.style.display = "block";
 }
@@ -145,9 +157,13 @@ function pickType(level) {
         return roll < 0.40 ? 2 : (roll < 0.91 ? 3 : 4);
     }
 
-    if (level === 4) {
+    if (level === 4 || level === 6) {
         if (Math.random() < 0.01) return 5;
         return roll < 0.91 ? 3 : 4;
+    }
+
+    if (level === 5) {
+        return 6;
     }
 
     return 2;
@@ -194,6 +210,36 @@ function spawner() {
     }
 
     spawn(x, y, pickType(level));
+}
+
+function spawnTensaiRingBall(i) {
+    const ringRadius = Math.min(canvas.width, canvas.height) / 2 - BALL_RADIUS - 4;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const angle = (i / TENSAI_RING_COUNT) * Math.PI * 2;
+    const x = centerX + Math.cos(angle) * ringRadius;
+    const y = centerY + Math.sin(angle) * ringRadius;
+    const speed = BALL_STATS[4].speed;
+    const dx = -Math.cos(angle) * speed;
+    const dy = -Math.sin(angle) * speed;
+    spawn(x, y, 4, dx, dy);
+}
+
+function updateTensaiWave() {
+    if (level !== 6) return;
+
+    if (!tensaiWaveActive && frame % TENSAI_RING_INTERVAL === 0) {
+        tensaiWaveActive = true;
+        tensaiWaveIndex = 0;
+        tensaiWaveNextFrame = frame;
+    }
+
+    if (tensaiWaveActive && frame >= tensaiWaveNextFrame) {
+        spawnTensaiRingBall(tensaiWaveIndex);
+        tensaiWaveIndex++;
+        tensaiWaveNextFrame = frame + TENSAI_FRAMES_PER_BALL;
+        if (tensaiWaveIndex >= TENSAI_RING_COUNT) tensaiWaveActive = false;
+    }
 }
 
 function turnTowardPlayer(ball, targetSpeed) {
@@ -329,6 +375,8 @@ function updateBalls() {
 
         handlePlayerCollision(ball);
     });
+
+    updateTensaiWave();
 }
 
 function move() {
