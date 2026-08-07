@@ -214,7 +214,7 @@ function spawnTensaiRing(i) {
     const dx = Math.cos(angle) * speed;
     const dy = Math.sin(angle) * speed;
     spawn(x, y, type, dx, dy);
-    spawnTensaiRing(i + 1);
+    setTimeout(() => spawnTensaiRing(i + 1), 50);
 }
 
 function turnTowardPlayer(ball, targetSpeed) {
