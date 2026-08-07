@@ -181,10 +181,14 @@ function draw() {
     }
 
     if (player.immunityFrames > 0) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.fillStyle = "rgb(173, 217, 237)";
         ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius + 4, 0, Math.PI * 2);
+        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
         ctx.fill();
+        ctx.strokeStyle = "rgb(0, 8, 255)";
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
+        ctx.stroke();
     }
 }
 
