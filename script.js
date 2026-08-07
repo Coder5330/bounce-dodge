@@ -281,7 +281,13 @@ function updateHomingBall(ball, stats) {
         ball.telegraph = true;
         const ang = Math.atan2(player.y - ball.y, player.x - ball.x);
         ball.ang = ang;
-        ball.telegraph_dir = { x: Math.cos(ang) * 30, y: Math.sin(ang) * 30 };
+        ball.telegraph_path = computeBouncePath(
+            ball.x, ball.y,
+            Math.cos(ang), Math.sin(ang),
+            3000,
+            canvas.width, canvas.height,
+            ball.radius
+        );
     }
     if (ball.dashTimer > DASH_CYCLE) {
         ball.dashing = true;
@@ -450,15 +456,54 @@ function drawBalls() {
             ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
             ctx.stroke();
         }
-        if (ball.telegraph) {
+        if (ball.telegraph && ball.telegraph_path) {
             ctx.strokeStyle = "rgb(255, 255, 255)";
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 10;
             ctx.beginPath();
-            ctx.moveTo(ball.x, ball.y);
-            ctx.lineTo(ball.x + ball.telegraph_dir.x, ball.y + ball.telegraph_dir.y);
+            ctx.moveTo(ball.telegraph_path[0].x, ball.telegraph_path[0].y);
+            for (let i = 1; i < ball.telegraph_path.length; i++) {
+                ctx.lineTo(ball.telegraph_path[i].x, ball.telegraph_path[i].y);
+            }
             ctx.stroke();
         }
     });
+}
+
+function computeBouncePath(x, y, dx, dy, totalLength, width, height, radius = 0) {
+    const points = [{ x, y }];
+    const mag = Math.hypot(dx, dy) || 1;
+    let vx = dx / mag;
+    let vy = dy / mag;
+    let cx = x, cy = y;
+    let remaining = totalLength;
+
+    const minX = radius, maxX = width - radius;
+    const minY = radius, maxY = height - radius;
+
+    let guard = 0;
+    while (remaining > 0 && guard < 200) {
+        guard++;
+
+        let tx = Infinity;
+        if (vx > 0) tx = (maxX - cx) / vx;
+        else if (vx < 0) tx = (minX - cx) / vx;
+
+        let ty = Infinity;
+        if (vy > 0) ty = (maxY - cy) / vy;
+        else if (vy < 0) ty = (minY - cy) / vy;
+
+        const t = Math.min(tx, ty, remaining);
+        cx += vx * t;
+        cy += vy * t;
+        points.push({ x: cx, y: cy });
+        remaining -= t;
+
+        if (remaining <= 0) break;
+        if (t === tx) vx = -vx;
+        if (t === ty) vy = -vy;
+    }
+
+    return points;
 }
 
 function drawHud() {
