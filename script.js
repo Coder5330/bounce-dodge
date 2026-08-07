@@ -284,7 +284,7 @@ function updateHomingBall(ball, stats) {
         ball.telegraph_path = computeBouncePath(
             ball.x, ball.y,
             Math.cos(ang), Math.sin(ang),
-            3000,
+            DASH_DURATION * stats.dash_speed,
             canvas.width, canvas.height,
             ball.radius
         );
@@ -458,7 +458,7 @@ function drawBalls() {
         }
         if (ball.telegraph && ball.telegraph_path) {
             ctx.strokeStyle = "rgb(255, 255, 255)";
-            ctx.lineWidth = 10;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(ball.telegraph_path[0].x, ball.telegraph_path[0].y);
             for (let i = 1; i < ball.telegraph_path.length; i++) {
