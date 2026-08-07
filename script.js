@@ -145,9 +145,13 @@ function pickType(level) {
         return roll < 0.40 ? 2 : (roll < 0.91 ? 3 : 4);
     }
 
-    if (level === 4) {
+    if (level === 4 || level === 6) {
         if (Math.random() < 0.01) return 5;
         return roll < 0.91 ? 3 : 4;
+    }
+
+    if (level === 5) {
+        return 6;
     }
 
     return 2;
@@ -194,6 +198,23 @@ function spawner() {
     }
 
     spawn(x, y, pickType(level));
+}
+
+function spawnTensaiRing(i) {
+    if (i >= 30) return;
+    const ringRadius = 200;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const angle = (i / 12) * Math.PI * 2;
+    const x = centerX + Math.cos(angle) * ringRadius;
+    const y = centerY + Math.sin(angle) * ringRadius;
+    const type = 6;
+    const stats = BALL_STATS[type];
+    const speed = stats.speed;
+    const dx = Math.cos(angle) * speed;
+    const dy = Math.sin(angle) * speed;
+    spawn(x, y, type, dx, dy);
+    spawnTensaiRing(i + 1);
 }
 
 function turnTowardPlayer(ball, targetSpeed) {
@@ -329,6 +350,10 @@ function updateBalls() {
 
         handlePlayerCollision(ball);
     });
+
+    if (level === 6 && frame % 600 === 0) {
+        spawnTensaiRing(0);
+    }
 }
 
 function move() {
