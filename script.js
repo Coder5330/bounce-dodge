@@ -133,6 +133,18 @@ function pickType(level) {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+
+    if (player.immunityFrames > 0) {
+        ctx.fillStyle = "rgba(173, 217, 237, 0.5)";
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgb(0, 8, 255)";
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    
     ctx.fillStyle = "rgb(0, 0, 255)";
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
@@ -178,17 +190,6 @@ function draw() {
         ctx.font = "18px sans-serif";
         ctx.fillText("Click or press space to restart", canvas.width / 2, canvas.height / 2 + 16);
         ctx.textAlign = "left";
-    }
-
-    if (player.immunityFrames > 0) {
-        ctx.fillStyle = "rgb(173, 217, 237)";
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgb(0, 8, 255)";
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
-        ctx.stroke();
     }
 }
 
