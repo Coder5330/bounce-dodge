@@ -1,5 +1,6 @@
 const canvas = document.getElementById("canvas");
 const startButton = document.getElementById("startButton");
+const menu = document.getElementById("menu");
 const s = Math.min(window.innerWidth - 40, window.innerHeight - 40, 900);
 canvas.width = s
 canvas.height = s
@@ -86,6 +87,8 @@ startButton.addEventListener("click", () => {
     if (selectedDifficulty) {
         level = parseInt(selectedDifficulty.value);
         state = 'game';
+        canvas.style.display = "block";
+        menu.style.display = "none";
     }
 });
 
