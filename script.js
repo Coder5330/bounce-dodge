@@ -202,13 +202,13 @@ function spawner() {
 
 function spawnTensaiRing(i) {
     if (i >= 30) return;
-    const ringRadius = 200;
+    const ringRadius = 400;
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const angle = (i / 12) * Math.PI * 2;
+    const angle = (i / 30) * Math.PI * 2;
     const x = centerX + Math.cos(angle) * ringRadius;
     const y = centerY + Math.sin(angle) * ringRadius;
-    const type = 6;
+    const type = 5;
     const stats = BALL_STATS[type];
     const speed = stats.speed;
     const dx = Math.cos(angle) * speed;
