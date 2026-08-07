@@ -25,11 +25,6 @@ const DASH_CYCLE = 300;
 const DASH_TELEGRAPH = 60;
 const DASH_DURATION = 66;
 
-const TENSAI_RING_INTERVAL = 1200;
-const TENSAI_WAVE_SPAWN_DURATION = 5000;
-const TENSAI_RING_COUNT = 60;
-const TENSAI_RING_RADIUS = 400;
-
 const BALL_STATS = {
     1: {
         speed: 1.7, color: 'rgb(0, 255, 0)',
@@ -150,13 +145,9 @@ function pickType(level) {
         return roll < 0.40 ? 2 : (roll < 0.91 ? 3 : 4);
     }
 
-    if (level === 4 || level === 6) {
+    if (level === 4) {
         if (Math.random() < 0.01) return 5;
         return roll < 0.91 ? 3 : 4;
-    }
-
-    if (level === 5) {
-        return 6;
     }
 
     return 2;
@@ -203,23 +194,6 @@ function spawner() {
     }
 
     spawn(x, y, pickType(level));
-}
-
-function spawnTensaiRing(i) {
-    if (i >= TENSAI_RING_COUNT) return;
-    const ringRadius = TENSAI_RING_RADIUS;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const angle = (i / TENSAI_RING_COUNT) * Math.PI * 2;
-    const x = centerX + Math.cos(angle) * ringRadius;
-    const y = centerY + Math.sin(angle) * ringRadius;
-    const type = 4;
-    const stats = BALL_STATS[type];
-    const speed = stats.speed;
-    const dx = Math.cos(angle) * speed;
-    const dy = Math.sin(angle) * speed;
-    spawn(x, y, type, dx, dy);
-    setTimeout(() => spawnTensaiRing(i + 1), TENSAI_WAVE_SPAWN_DURATION / TENSAI_RING_COUNT);
 }
 
 function turnTowardPlayer(ball, targetSpeed) {
@@ -355,10 +329,6 @@ function updateBalls() {
 
         handlePlayerCollision(ball);
     });
-
-    if (level === 6 && frame % TENSAI_RING_INTERVAL === 0) {
-        spawnTensaiRing(0);
-    }
 }
 
 function move() {
