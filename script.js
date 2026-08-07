@@ -281,14 +281,14 @@ function updateHomingBall(ball, stats) {
         ball.telegraph = true;
         const ang = Math.atan2(player.y - ball.y, player.x - ball.x);
         ball.ang = ang;
-        ball.telegraph_path = computeBouncePath(
-            ball.x, ball.y,
-            Math.cos(ang), Math.sin(ang),
-            DASH_DURATION * stats.dash_speed,
-            canvas.width, canvas.height,
-            ball.radius
-        );
     }
+    ball.telegraph_path = computeBouncePath(
+        ball.x, ball.y,
+        Math.cos(ball.ang), Math.sin(ball.ang),
+        DASH_DURATION * stats.dash_speed,
+        canvas.width, canvas.height,
+        ball.radius
+    );
     if (ball.dashTimer > DASH_CYCLE) {
         ball.dashing = true;
         ball.dashTimer = 0;
