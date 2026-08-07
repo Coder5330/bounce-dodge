@@ -8,6 +8,7 @@ const player = {
     y: canvas.height / 2,
     radius: 10,
     lives: 3,
+    immunityFrames: 0,
 }
 const keys = {}
 
@@ -178,6 +179,13 @@ function draw() {
         ctx.fillText("Click or press space to restart", canvas.width / 2, canvas.height / 2 + 16);
         ctx.textAlign = "left";
     }
+
+    if (player.immunityFrames > 0) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius + 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 function turnTowardPlayer(ball, targetSpeed) {
@@ -238,6 +246,7 @@ function move() {
 
     player.x = Math.min(Math.max(player.radius, player.x + dx), canvas.width - player.radius);
     player.y = Math.min(Math.max(player.radius, player.y + dy), canvas.height - player.radius);
+    player.immunityFrames = Math.max(0, player.immunityFrames - 1);
 
     balls.forEach((ball) => {
         const stats = BALL_STATS[ball.type];
@@ -316,10 +325,13 @@ function move() {
 
         const dist = Math.hypot(ball.x - player.x, ball.y - player.y);
         if (dist < ball.radius + player.radius) {
+            if (player.immunityFrames > 0) return;
             player.lives--;
             if (player.lives <= 0) {
                 gameOver = true;
             }
+            ball.dead = true;
+            player.immunityFrames = 60;
         }
     })
 }
