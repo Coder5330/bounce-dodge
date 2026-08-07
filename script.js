@@ -25,6 +25,10 @@ const DASH_CYCLE = 300;
 const DASH_TELEGRAPH = 60;
 const DASH_DURATION = 66;
 
+const TENSAI_RING_INTERVAL = 800;
+const TENSAI_RING_COUNT = 60;
+const TENSAI_RING_RADIUS = 400;
+
 const BALL_STATS = {
     1: {
         speed: 1.7, color: 'rgb(0, 255, 0)',
@@ -201,11 +205,11 @@ function spawner() {
 }
 
 function spawnTensaiRing(i) {
-    if (i >= 30) return;
-    const ringRadius = 400;
+    if (i >= TENSAI_RING_COUNT) return;
+    const ringRadius = TENSAI_RING_RADIUS;
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const angle = (i / 30) * Math.PI * 2;
+    const angle = (i / TENSAI_RING_COUNT) * Math.PI * 2;
     const x = centerX + Math.cos(angle) * ringRadius;
     const y = centerY + Math.sin(angle) * ringRadius;
     const type = 4;
@@ -351,7 +355,7 @@ function updateBalls() {
         handlePlayerCollision(ball);
     });
 
-    if (level === 6 && frame % 600 === 0) {
+    if (level === 6 && frame % TENSAI_RING_INTERVAL === 0) {
         spawnTensaiRing(0);
     }
 }
