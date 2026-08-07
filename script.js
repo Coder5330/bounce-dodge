@@ -25,7 +25,8 @@ const DASH_CYCLE = 300;
 const DASH_TELEGRAPH = 60;
 const DASH_DURATION = 66;
 
-const TENSAI_RING_INTERVAL = 800;
+const TENSAI_RING_INTERVAL = 1200;
+const TENSAI_WAVE_SPAWN_DURATION = 5000;
 const TENSAI_RING_COUNT = 60;
 const TENSAI_RING_RADIUS = 400;
 
@@ -218,7 +219,7 @@ function spawnTensaiRing(i) {
     const dx = Math.cos(angle) * speed;
     const dy = Math.sin(angle) * speed;
     spawn(x, y, type, dx, dy);
-    setTimeout(() => spawnTensaiRing(i + 1), 50);
+    setTimeout(() => spawnTensaiRing(i + 1), TENSAI_WAVE_SPAWN_DURATION / TENSAI_RING_COUNT);
 }
 
 function turnTowardPlayer(ball, targetSpeed) {
